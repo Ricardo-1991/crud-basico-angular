@@ -1,0 +1,45 @@
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+    <main class="container-form">
+      <label for="completeName">Nome completo:</label>
+      <input id="completeName" type="text" formControlName="completeName">
+        @if(userForm.get('completeName')?.invalid && userForm.get('completeName')?.touched ){
+          <span>Vc precisa digitar o nome completo e ele precisa ter pelo menos 5 letras.</span>
+        }
+
+      <label for="lastName">Sobrenome:</label>
+      <input id="lastName" type="text" formControlName="lastName">
+        @if(userForm.get('lastName')?.invalid && userForm.get('lastName')?.touched ){
+          <span>Vc precisa digitar o sobrenome e ele precisa ter pelo menos 3 letras</span>
+        }
+
+      <label for="email">E-mail:</label>
+      <input id="email" type="text" formControlName="email" placeholder="usuario@email.com">
+        @if(userForm.get('email')?.invalid && userForm.get('email')?.touched ){
+          <span>Vc precisa digitar um e-mail no formato válido</span>
+        }
+      <label for="birthDate">Data de Nascimento (dd/mm/aaaa):</label>
+      <input id="birthDate" type="date" formControlName="birthDate" placeholder="dd/mm/aaaa">
+        @if(userForm.get('birthDate')?.invalid && userForm.get('birthDate')?.touched ){
+          <span>Vc precisa digitar uma data válida.</span>
+        }
+
+        <label for="zipCode">CEP</label>
+        <input type="text" formControlName="zipCode" mask="00000-000" placeholder="12345-678" (blur)="onCepBlur()">
+          @if(userForm.get('zipCode')?.invalid && userForm.get('zipCode')?.touched ){
+            <span>Vc precisa adicionar um CEP.</span>
+          }
+
+        <label for="country">País</label>
+        <input id="country" formControlName="country" type="text">
+
+        <label for="city">Cidade</label>
+        <input id="city" formControlName="city" type="text">
+
+        <label for="neighborhood">Rua</label>
+        <input id="neighborhood" formControlName="neighborhood" type="text">
+
+        <button type="submit">Cadastrar</button>
+    </main>
+
+  </form>
+
