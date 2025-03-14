@@ -1,3 +1,12 @@
 <header>
   <h1>Formulário de cadastro de usuário</h1>
+  <div class="button-container">
+    <p-button (click)="showDialog()" label="Cadastrar Usuário" />
+    <p-dialog header="Cadastro de usuário" [(visible)]="visible" [style]="{ width: '40rem', padding: '0.5rem' }">
+      <app-register (registerSuccess)="visible = false"></app-register>
+      <div class="flex justify-end gap-2">
+          <p-button label="Cancel" severity="secondary" (click)="visible = false" />
+      </div>
+    </p-dialog>
+  </div>
 </header>

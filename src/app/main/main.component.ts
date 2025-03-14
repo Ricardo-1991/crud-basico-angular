@@ -1,37 +1,50 @@
-import { Component, OnInit } from '@angular/core';
-import {FormGroup, FormControl, Validators, ReactiveFormsModule} from '@angular/forms'
-import { DatePipe} from '@angular/common';
-import { NgxMaskDirective} from 'ngx-mask';
-
-import { HttpClientZipCodeService } from '../service/http-client.zipcode';
+import { Component } from '@angular/core';
+import {ReactiveFormsModule} from '@angular/forms';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
 import { HttpClientUserService } from '../service/http-client.user';
+import {HttpClientZipCodeService} from '../service/http-client.zipcode';
+import { DialogModule } from 'primeng/dialog';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-main',
-  imports: [ReactiveFormsModule, NgxMaskDirective],
-  providers: [DatePipe],
+  imports: [TableModule, ButtonModule, DialogModule, ReactiveFormsModule],
+  providers: [],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css'
 })
 export class MainComponent {
+  users: any[] = [];
+  visible: boolean = false
   userForm!: FormGroup
-
-  constructor(private datePipe: DatePipe,
-              private httpClienteZipCodeService: HttpClientZipCodeService,
-              private httpClienteUserService: HttpClientUserService
-  ){}
+  editedUser: any = {}
+  cols: any[] = [
+    { field: 'id', header: 'ID' },
+    { field: 'completeName', header: 'Nome' },
+    { field: 'lastName', header: 'Sobrenome' },
+    { field: 'email', header: 'Email' },
+    { field: 'birthDate', header: 'Data de Nascimento' },
+    { field: 'zipCode', header: 'CEP' },
+    { field: 'country', header: 'País' },
+    { field: 'city', header: 'Cidade' },
+    { field: 'neighborhood', header: 'localidade' },
+  ];
+  constructor(private httpClientUserService: HttpClientUserService, private httpClienteZipCodeService: HttpClientZipCodeService){}
 
   ngOnInit(){
     this.userForm = new FormGroup({
-      completeName: new FormControl('', [Validators.required, Validators.minLength(5)]),
-      lastName: new FormControl('', [Validators.required, Validators.minLength(2)]),
-      email: new FormControl('', [Validators.required,  Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]),
-      birthDate: new FormControl('', Validators.required),
-      zipCode: new FormControl('',Validators.required),
-      country: new FormControl('',Validators.required),
-      city: new FormControl('',Validators.required),
-      neighborhood: new FormControl('',Validators.required),
+      zipCode: new FormControl('', Validators.required),
+      country: new FormControl('', Validators.required),
+      city: new FormControl('', Validators.required),
+      neighborhood: new FormControl('', Validators.required),
     })
+    this.httpClientUserService.loadUsers();
+    this.httpClientUserService.getUsers().subscribe({
+      next: (data) =>  this.users = data,
+      error: (error) => console.log("Error ao buscar usuários", error)
+    })
+    console.log(this.users)
   }
 
   onCepBlur() {
@@ -52,25 +65,30 @@ export class MainComponent {
     }
   }
 
-  onSubmit(){
-    if(this.userForm.valid){
-      const formValues = this.userForm.value
-      const birthDate = this.userForm.get('birthDate')?.value
+  showDialog(user: any): void {
+      this.editedUser = { ...user };
+      this.userForm.patchValue({
+        zipCode: user.zipCode,
+      });
+    this.visible = true;
+  }
 
-      const formattedDate = this.datePipe.transform(birthDate, 'dd/MM/yyyy')
+  deleteUser(id: any){
+    this.httpClientUserService.deleteUser(id).subscribe({
+      next: () => this.ngOnInit(),
+      error: (error) => console.log("Error ao deletar usuário", error)
+    })
+  }
 
-      const payload = {
-        ...formValues,
-        birthDate: formattedDate
-      }
-      this.httpClienteUserService.createUser(payload).subscribe({
-        next: response => {
-          console.log("Usuário criado com sucesso", response);
-        },
-        error: error => {
-          console.error('Erro ao buscar dados do CEP', error);
-        }
-      })
-    }
+  onUpdateUser(): void {
+    const updatedUser = { ...this.editedUser, ...this.userForm.value };
+    this.httpClientUserService.updateUser(updatedUser.id, updatedUser).subscribe({
+      next: () => {
+        this.httpClientUserService.loadUsers();
+        this.visible = false;
+      },
+      error: (error) => console.log('Error ao atualizar usuário', error)
+    });
+    this.userForm.reset();
   }
 }
